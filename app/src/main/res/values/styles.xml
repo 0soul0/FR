@@ -1,0 +1,30 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/gray</item>
+        <item name="colorPrimaryDark">@color/gray</item>
+        <item name="colorAccent">@color/gray</item>
+    </style>
+
+    <style name="dialog_center" parent="Theme.AppCompat.Dialog.Alert">
+        <!-- 去黑边 -->
+        <item name="android:windowFrame">@null</item>
+        <item name="android:screenOrientation">portrait</item>
+        <!-- 设置是否可滑动 -->
+        <item name="android:windowIsFloating">true</item>
+        <!-- 背景 -->
+        <!-- 窗口背景 @color/touming的值为：#00000000 ， style中不能直接引用16进制，感谢评论区的老铁提醒-->
+
+        <item name="android:windowBackground">@color/transparent</item>
+
+        <!-- 是否变暗 -->
+        <item name="android:backgroundDimEnabled">true</item>
+        <!-- 点击空白部分activity不消失 -->
+        <item name="android:windowCloseOnTouchOutside">true</item>
+        <item name="android:navigationBarColor">@color/colorPrimaryDark</item>
+    </style>
+
+
+</resources>

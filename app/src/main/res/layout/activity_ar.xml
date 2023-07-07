@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.gj.fr.ArActivity">
+
+    <fragment
+        android:id="@+id/UI_ArSceneView"
+        android:name="com.gj.fr.MyArFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
+
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="20dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="180dp"
+        android:background="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/UI_ArSceneView" />
+
+    <View
+        android:id="@+id/view_center"
+        android:layout_width="1dp"
+        android:layout_height="20dp"
+        android:background="@color/white"
+        app:layout_constraintBottom_toBottomOf="@+id/view"
+        app:layout_constraintEnd_toEndOf="@+id/view"
+        app:layout_constraintStart_toStartOf="@+id/view"
+        app:layout_constraintTop_toTopOf="@+id/view" />
+
+    <TextView
+        android:id="@+id/tv_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_btn_ar"
+        android:paddingVertical="7dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="60dp"
+        android:text="於法蘭面邊緣選取三個點"
+        android:textColor="@color/black_low"
+        android:textSize="20sp"
+        android:layout_marginStart="20dp"
+        android:layout_marginBottom="20dp"
+        app:layout_constraintBottom_toTopOf="@+id/constraintLayout"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayout"
+        android:layout_width="match_parent"
+        android:layout_height="320dp"
+        android:background="@drawable/bg_controller"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+
+        <TextView
+            android:id="@+id/tv_out_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="24dp"
+            android:text="法蘭外徑"
+            android:textColor="@color/gray"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tv_out"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="250.0"
+            android:textColor="@color/gray"
+            android:textSize="28sp"
+            app:layout_constraintStart_toStartOf="@+id/tv_out_title"
+            app:layout_constraintTop_toBottomOf="@+id/tv_out_title" />
+
+        <TextView
+            android:id="@+id/tv_hole_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="孔位圓徑"
+            android:textColor="@color/gray"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_out" />
+
+        <TextView
+            android:id="@+id/tv_hole"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="200.0"
+            android:textColor="@color/gray"
+            android:textSize="28sp"
+            app:layout_constraintStart_toStartOf="@+id/tv_hole_title"
+            app:layout_constraintTop_toBottomOf="@+id/tv_hole_title" />
+
+        <TextView
+            android:id="@+id/tv_thickness_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="孔位圓徑"
+            android:textColor="@color/gray"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_hole" />
+
+        <TextView
+            android:id="@+id/tv_thickness"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="30.0"
+            android:textColor="@color/gray"
+            android:textSize="28sp"
+            app:layout_constraintStart_toStartOf="@+id/tv_thickness_title"
+            app:layout_constraintTop_toBottomOf="@+id/tv_thickness_title" />
+
+        <TextView
+            android:id="@+id/tv_setting"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_btn_ar"
+            android:paddingHorizontal="45dp"
+            android:paddingVertical="5dp"
+            android:text="設定"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_thickness" />
+
+        <TextView
+            android:id="@+id/tv_reset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_btn_ar"
+            android:paddingHorizontal="45dp"
+            android:paddingVertical="5dp"
+            android:text="重置"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_setting" />
+
+        <ImageView
+            android:id="@+id/iv_add"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginStart="164dp"
+            android:layout_marginTop="120dp"
+            android:background="@drawable/bg_btn_ar_circle"
+            android:padding="20dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/baseline_zoom_out_map_24" />
+
+
+        <TextView
+            android:id="@+id/tv_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_btn_ar"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="3dp"
+            android:text="返回"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            app:drawableLeftCompat="@drawable/baseline_settings_backup_restore_24"
+            app:layout_constraintStart_toStartOf="@+id/iv_add"
+            app:layout_constraintTop_toBottomOf="@+id/iv_add" />
+
+        <com.gj.fr.ScaleAdjustmentView
+            android:id="@+id/view_scale"
+            android:layout_width="140dp"
+            android:layout_height="match_parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

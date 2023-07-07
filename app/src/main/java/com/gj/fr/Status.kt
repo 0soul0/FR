@@ -1,0 +1,10 @@
+package com.gj.fr
+
+enum class Status {
+
+    STATUS_MODEL_ADD,
+    STATUS_DOT_ADD,
+    STATUS_HOLE_SIZE_SELECT,
+    STATUS_THICKNESS_SELECT,
+    STATUS_SCREW_SELECT,
+}

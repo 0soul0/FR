@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">travel</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="welcome">歡迎使用</string>
+    <string name="welcome_dec">請充分了解本應用程式的使用條件</string>
+    <string name="welcome_step1">為確保辨識的準確性，應於距離法蘭10~20公分的範圍內進行手機操作</string>
+    <string name="welcome_step2">請確保環境光線充足，無嚴重反光與障礙物遮蔽法蘭</string>
+    <string name="start">直接開始使用</string>
+    <string name="teach">進入教學頁面</string>
+    <string name="outer_Diameter">法蘭外徑</string>
+</resources>
