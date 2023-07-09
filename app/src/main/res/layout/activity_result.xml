@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_gravity="center"
+    android:paddingBottom="24dp"
     android:background="@color/white">
 
     <com.gj.fr.ImageTextView
