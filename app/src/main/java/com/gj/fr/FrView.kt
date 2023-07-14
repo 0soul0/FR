@@ -47,7 +47,7 @@ class FrView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
     private fun animator() {
         val valueAnimator = ValueAnimator.ofFloat(0f, 1f)
         valueAnimator.apply {
-            duration = 1000
+            duration = 500
             repeatMode = ValueAnimator.RESTART
 //            repeatCount = ValueAnimator.REVERSE
             interpolator = LinearInterpolator()
@@ -79,7 +79,7 @@ class FrView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
         if (value < 350) return
 
         canvas?.drawText(text, unit, 2*circleCenterX+3*unit, paint.apply {
-            textSize = 90f
+            textSize = 70f
             style=Paint.Style.FILL_AND_STROKE
             isAntiAlias = true
             strokeWidth=0f
@@ -91,7 +91,7 @@ class FrView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
         paint.apply {
             color = resources.getColor(R.color.black)
             style = Paint.Style.STROKE
-            strokeWidth = 35f
+            strokeWidth = 25f
         }
 
         val paint2 = Paint().apply {

@@ -5,14 +5,15 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.gj.arcoredraw.R
+import kotlinx.android.synthetic.main.activity_teach.tv_in
+import kotlinx.android.synthetic.main.activity_teach.tv_video
 
 
-
-class SettingActivity : AppCompatActivity(R.layout.activity_setting) {
+class TeachActivity : AppCompatActivity(R.layout.activity_teach) {
 
     companion object {
         fun start(context: Context) {
-            context.startActivity(Intent(context, SettingActivity::class.java))
+            context.startActivity(Intent(context, TeachActivity::class.java))
         }
     }
 
@@ -20,5 +21,10 @@ class SettingActivity : AppCompatActivity(R.layout.activity_setting) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        tv_in.setOnClickListener {  }
+        tv_video.setOnClickListener {
+
+        }
     }
 }

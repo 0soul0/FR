@@ -31,6 +31,8 @@ import kotlinx.android.synthetic.main.activity_ar.tv_hole_title
 import kotlinx.android.synthetic.main.activity_ar.tv_info
 import kotlinx.android.synthetic.main.activity_ar.tv_out
 import kotlinx.android.synthetic.main.activity_ar.tv_out_title
+import kotlinx.android.synthetic.main.activity_ar.tv_reset
+import kotlinx.android.synthetic.main.activity_ar.tv_setting
 import kotlinx.android.synthetic.main.activity_ar.tv_thickness
 import kotlinx.android.synthetic.main.activity_ar.tv_thickness_title
 import kotlinx.android.synthetic.main.activity_ar.view_scale
@@ -120,6 +122,8 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
         tv_thickness_title.setTextColor(resources.getColor(R.color.gray))
         tv_thickness.setTextColor(resources.getColor(R.color.gray))
         view_scale.setIsTouch(false)
+        tv_back.visibility = View.GONE
+        iv_add.setImageDrawable(resources.getDrawable(R.drawable.baseline_zoom_out_map_24))
     }
 
     private fun bindEvent() {
@@ -142,23 +146,27 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
                     determineTheDot()
                     if (dots.size == 3 || true) {
                         //計算球心https://www.cnblogs.com/kongbursi-2292702937/p/15190825.html
-//                        FRcenterPosition = centerCircle3d(
-//                            dots[0].worldPosition.x.toDouble(),
-//                            dots[0].worldPosition.y.toDouble(),
-//                            dots[0].worldPosition.z.toDouble(),
-//                            dots[1].worldPosition.x.toDouble(),
-//                            dots[1].worldPosition.y.toDouble(),
-//                            dots[1].worldPosition.z.toDouble(),
-//                            dots[2].worldPosition.x.toDouble(),
-//                            dots[2].worldPosition.y.toDouble(),
-//                            dots[2].worldPosition.z.toDouble()
-//                        )
+                        FRcenterPosition = centerCircle3d(
+                            dots[0].worldPosition.x.toDouble(),
+                            dots[0].worldPosition.y.toDouble(),
+                            dots[0].worldPosition.z.toDouble(),
+                            dots[1].worldPosition.x.toDouble(),
+                            dots[1].worldPosition.y.toDouble(),
+                            dots[1].worldPosition.z.toDouble(),
+                            dots[2].worldPosition.x.toDouble(),
+                            dots[2].worldPosition.y.toDouble(),
+                            dots[2].worldPosition.z.toDouble()
+                        )
                         //添加模型
                         moveFR()
 
                         status = Status.STATUS_HOLE_SIZE_SELECT
                         iv_add.setImageDrawable(resources.getDrawable(R.drawable.baseline_arrow_forward_24))
                         tv_back.visibility = View.VISIBLE
+                        tv_back.setOnClickListener {
+                            it.visibility=View.GONE
+                            tv_reset.performClick()
+                        }
                         view_scale.setValue(tv_hole.text.toString().toFloat())
                         view_scale.setIsTouch(true)
                         tv_hole_title.setTextColor(resources.getColor(R.color.black_low))
@@ -183,12 +191,12 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
 
                     status = Status.STATUS_SCREW_SELECT
                     iv_add.setImageDrawable(resources.getDrawable(R.drawable.baseline_content_paste_24))
-                    ScrewDialog({
+                    val dialog=ScrewDialog({
                         wheelView = it
                     }, {
                         iv_add.performClick()
-                    }).show(supportFragmentManager, "")
-
+                    })
+                    dialog.show(supportFragmentManager, "")
                 }
 
                 Status.STATUS_SCREW_SELECT -> {
@@ -222,6 +230,18 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
 
             }
         }
+
+        tv_reset.setOnClickListener {
+            status = Status.STATUS_MODEL_ADD
+            restore()
+        }
+        tv_setting.setOnClickListener {
+            TeachActivity.start(this)
+        }
+    }
+
+    fun clear(){
+
     }
 
     private fun showResultListDialog() {

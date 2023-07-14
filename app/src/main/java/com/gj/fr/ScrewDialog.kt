@@ -5,6 +5,7 @@ import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
@@ -29,9 +30,6 @@ class ScrewDialog(
     private val wheel_view by lazy {
         contentView.findViewById(R.id.wheel_view) as WheelView
     }
-    private val ll_body by lazy {
-        contentView.findViewById(R.id.ll_body) as LinearLayout
-    }
 
     private val alertDialog by lazy { createDialog() }
 
@@ -43,10 +41,6 @@ class ScrewDialog(
 
         wheel_view.data=screwList
         listener(wheel_view)
-
-        ll_body.setOnClickListener {
-            dListener()
-        }
 
         val window = dialog.window
         window?.setDimAmount(0f)
@@ -61,5 +55,10 @@ class ScrewDialog(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        dListener()
     }
 }

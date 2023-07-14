@@ -140,7 +140,7 @@
             android:background="@drawable/bg_btn_ar"
             android:paddingHorizontal="45dp"
             android:paddingVertical="5dp"
-            android:text="設定"
+            android:text="教學"
             android:textColor="@color/black"
             android:textSize="20sp"
             app:layout_constraintStart_toStartOf="parent"
@@ -200,16 +200,6 @@
             app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <com.gj.fr.FrView
-        android:background="@color/white"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

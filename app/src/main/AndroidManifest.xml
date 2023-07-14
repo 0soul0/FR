@@ -6,12 +6,14 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-feature android:name="android.hardware.camera"
+        android:required="true" />
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/icon_logo"
         android:label="@string/app_name"
         android:largeHeap="true"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/icon_logo"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
@@ -23,13 +25,25 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="com.gj.fr.SettingActivity" />
+        <activity android:name="com.gj.fr.TeachActivity" />
         <activity android:name="com.gj.fr.ResultActivity" />
 
         <meta-data
             android:name="com.google.ar.core"
             android:value="optional" />
 
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.example.android.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"></meta-data>
+
+        </provider>
+
     </application>
+
 
 </manifest>

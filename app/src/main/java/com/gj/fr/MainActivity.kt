@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         }
 
         findViewById<Button>(R.id.btn_teach).setOnClickListener {
-            SettingActivity.start(this)
+            TeachActivity.start(this)
         }
     }
 
