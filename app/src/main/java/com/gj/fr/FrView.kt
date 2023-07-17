@@ -79,7 +79,7 @@ class FrView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
         if (value < 350) return
 
         canvas?.drawText(text, unit, 2*circleCenterX+3*unit, paint.apply {
-            textSize = 70f
+            textSize = 50f
             style=Paint.Style.FILL_AND_STROKE
             isAntiAlias = true
             strokeWidth=0f

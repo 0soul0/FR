@@ -1,0 +1,48 @@
+<resources>
+    <string name="app_name">Flange AR</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="welcome">歡迎使用</string>
+    <string name="welcome_dec">請充分了解本應用程式的使用條件</string>
+    <string name="welcome_step1">為確保辨識的準確性，應於距離法蘭10~20公分的範圍內進行手機操作</string>
+    <string name="welcome_step2">請確保環境光線充足，無嚴重反光與障礙物遮蔽法蘭</string>
+    <string name="start">直接開始使用</string>
+    <string name="teach">進入教學頁面</string>
+    <string name="outer_Diameter">法蘭外徑</string>
+    <string name="can_not_open_pdf">找不到相容的應用程式來開啟PDF</string>
+    <string name="rank">排名</string>
+    <string name="select_Flange_Circumference">於法蘭面邊緣選取三個點</string>
+    <string name="map_red_cylinder">透過轉盤調整紅色圓柱
+        貼合其底面圓周與螺栓孔中心</string>
+    <string name="map_yellow_cylinder">透過轉盤調整黃色圓柱
+        使其厚度與法蘭相同</string>
+
+
+    <string name="outer_diameter">法蘭外徑</string>
+    <string name="number_of_bolts">螺釘數目</string>
+    <string name="image_saved">已儲存至照片</string>
+    <string name="query_result">查詢結果</string>
+    <string name="bolt_diameter">孔位圓徑</string>
+
+
+
+    <string name="thickness">厚度</string>
+    <string name="tutorial">教學</string>
+    <string name="reset">重置</string>
+    <string name="undo">返回</string>
+    <string name="size">尺寸</string>
+    <string name="class_level">壓力等級</string>
+
+    <string name="bolt_circle_diameter">螺栓孔中心圓徑</string>
+    <string name="material">材質</string>
+    <string name="standard">法蘭標準</string>
+    <string name="specs_marker">紀錄</string>
+    <string name="instruction_video">教學影片</string>
+    <string name="user_manual">操作說明書</string>
+    <string name="success">儲存成功</string>
+    <string name="close">關閉</string>
+
+    <string name="language">語言</string>
+    <string name="English">English</string>
+    <string name="Chinese">中文</string>
+</resources>

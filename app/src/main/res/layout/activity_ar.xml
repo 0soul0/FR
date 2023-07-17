@@ -7,6 +7,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.gj.fr.ArActivity">
+
+
+
     <fragment
         android:id="@+id/UI_ArSceneView"
         android:name="com.gj.fr.MyArFragment"
@@ -19,7 +22,17 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="1.0" />
 
-
+    <ImageView
+        android:id="@+id/iv_setting"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:background="@drawable/bg_language"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="24dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/baseline_tune_24" />
     <View
         android:id="@+id/view"
         android:layout_width="20dp"
@@ -44,11 +57,13 @@
         android:id="@+id/tv_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:clickable="true"
+        android:focusable="true"
         android:background="@drawable/bg_btn_ar"
         android:paddingVertical="7dp"
         android:paddingStart="10dp"
         android:paddingEnd="60dp"
-        android:text="於法蘭面邊緣選取三個點"
+        android:text="@string/select_Flange_Circumference"
         android:textColor="@color/black_low"
         android:textSize="20sp"
         android:layout_marginStart="20dp"
@@ -70,7 +85,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:layout_marginTop="24dp"
-            android:text="法蘭外徑"
+            android:text="@string/outer_diameter"
             android:textColor="@color/gray"
             android:textSize="16sp"
             android:textStyle="bold"
@@ -92,7 +107,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            android:text="孔位圓徑"
+            android:text="@string/bolt_diameter"
             android:textColor="@color/gray"
             android:textSize="16sp"
             android:textStyle="bold"
@@ -114,7 +129,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            android:text="孔位圓徑"
+            android:text="@string/thickness"
             android:textColor="@color/gray"
             android:textSize="16sp"
             android:textStyle="bold"
@@ -140,7 +155,7 @@
             android:background="@drawable/bg_btn_ar"
             android:paddingHorizontal="45dp"
             android:paddingVertical="5dp"
-            android:text="教學"
+            android:text="@string/tutorial"
             android:textColor="@color/black"
             android:textSize="20sp"
             app:layout_constraintStart_toStartOf="parent"
@@ -155,7 +170,7 @@
             android:background="@drawable/bg_btn_ar"
             android:paddingHorizontal="45dp"
             android:paddingVertical="5dp"
-            android:text="重置"
+            android:text="@string/reset"
             android:textColor="@color/black"
             android:textSize="20sp"
             app:layout_constraintStart_toStartOf="parent"
@@ -184,7 +199,7 @@
             android:background="@drawable/bg_btn_ar"
             android:paddingHorizontal="20dp"
             android:paddingVertical="3dp"
-            android:text="返回"
+            android:text="@string/undo"
             android:textColor="@color/black"
             android:textSize="14sp"
             app:drawableLeftCompat="@drawable/baseline_settings_backup_restore_24"

@@ -23,7 +23,10 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
         findViewById<Button>(R.id.btn_teach).setOnClickListener {
             TeachActivity.start(this)
+//            ResultActivity.start(this)
         }
+
+        permissionPhoto()
     }
 
 

@@ -23,7 +23,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:text="查詢結果"
+            android:text="@string/query_result"
             android:textColor="@color/black_low"
             android:textSize="24sp"
             android:textStyle="bold" />

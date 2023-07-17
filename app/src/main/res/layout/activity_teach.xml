@@ -5,17 +5,31 @@
     android:layout_height="match_parent"
     android:background="@color/blue_t">
 
+    <com.gj.fr.ImageTextView
+        android:id="@+id/itv_back"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:drawableLeft="@drawable/baseline_chevron_left_24"
+        android:gravity="center_vertical"
+        android:textColor="@android:color/holo_blue_light"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:translationZ="5dp"
+        android:layout_marginStart="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <TextView
         android:id="@+id/textView8"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
-        android:layout_marginTop="32dp"
-        android:text="教學"
+        android:text="@string/tutorial"
         android:textColor="@color/black"
         android:textSize="30sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/itv_back" />
 
 
     <TextView
@@ -24,7 +38,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
         android:layout_marginTop="20dp"
-        android:text="教學"
+        android:text="@string/tutorial"
         android:textColor="@color/gray_t"
         android:textSize="15sp"
         app:layout_constraintStart_toStartOf="parent"
@@ -51,7 +65,7 @@
             android:layout_marginBottom="12dp"
             android:clickable="true"
             android:focusable="true"
-            android:text="操作說明書"
+            android:text="@string/user_manual"
             android:textColor="@android:color/holo_blue_dark"
             android:textSize="18sp" />
 
@@ -67,10 +81,8 @@
             android:layout_marginTop="12dp"
             android:clickable="true"
             android:focusable="true"
-            android:text="教學影片"
+            android:text="@string/instruction_video"
             android:textColor="@android:color/holo_blue_dark"
             android:textSize="18sp" />
     </LinearLayout>
-
-
 </androidx.constraintlayout.widget.ConstraintLayout>

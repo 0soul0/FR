@@ -1,30 +1,37 @@
 package com.gj.fr
 
-import android.content.ContentValues
+import android.app.Instrumentation
 import android.content.Context
 import android.content.Intent
 import android.graphics.Point
-import android.net.Uri
+import android.icu.text.DecimalFormat
 import android.os.Bundle
-import android.os.Environment
-import android.provider.MediaStore
+import android.os.SystemClock
+import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContentProviderCompat.requireContext
-import androidx.core.content.FileProvider
+import androidx.core.content.ContextCompat
 import com.github.gzuliyujiang.wheelview.widget.WheelView
 import com.gj.arcoredraw.R
+import com.google.ar.core.Anchor
+import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.Camera
+import com.google.ar.sceneform.HitTestResult
 import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.Scene
 import com.google.ar.sceneform.math.Vector3
+import com.google.ar.sceneform.rendering.Color
 import com.google.ar.sceneform.rendering.Material
 import com.google.ar.sceneform.rendering.MaterialFactory
 import com.google.ar.sceneform.rendering.ModelRenderable
+import com.google.ar.sceneform.rendering.Renderable
 import com.google.ar.sceneform.rendering.ShapeFactory
 import com.google.ar.sceneform.rendering.Texture
 import com.google.ar.sceneform.ux.ArFragment
+import com.google.ar.sceneform.ux.TransformableNode
 import kotlinx.android.synthetic.main.activity_ar.iv_add
+import kotlinx.android.synthetic.main.activity_ar.iv_setting
 import kotlinx.android.synthetic.main.activity_ar.tv_back
 import kotlinx.android.synthetic.main.activity_ar.tv_hole
 import kotlinx.android.synthetic.main.activity_ar.tv_hole_title
@@ -36,11 +43,6 @@ import kotlinx.android.synthetic.main.activity_ar.tv_setting
 import kotlinx.android.synthetic.main.activity_ar.tv_thickness
 import kotlinx.android.synthetic.main.activity_ar.tv_thickness_title
 import kotlinx.android.synthetic.main.activity_ar.view_scale
-import java.io.File
-import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import java.util.function.Consumer
 
 
@@ -64,6 +66,7 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
         )
     )
 
+    private var TAG: String = "ArActivity-AppCompatActivity"
 
     private lateinit var arFragment: ArFragment
     private lateinit var viewCenter: View
@@ -71,32 +74,119 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
     private var point: Point? = null
 
     private var dotModel: ModelRenderable? = null
+    private var frOuterModel: Renderable? = null
+    private var frOuterNode = Node()
+    private var frOuterDefaultDiameter = 0.25f //25cm 直徑
+    private var frOuterDefaultHeight = 0.03f //3cm
+
+    private var frInterModel: ModelRenderable? = null
+    private var frInterNode = Node()
+    private var frInterDefaultDiameter = 0.20f //25cm 直徑
+    private var frInterDefaultHeight = 0.01f //1cm
+    private val time:Float = 2.0f
+
     private var scene: Scene? = null
     private var camera: Camera? = null
 
     private var status: Status = Status.STATUS_MODEL_ADD
     private var dots = mutableListOf<Node>()
-    private var FRNode: Node = Node()
-    private var FRcenterPosition: List<Double>? = null
+    private var dataArray = arrayListOf<AnchorInfoBean>()
     private var wheelView: WheelView? = null
+    private val df = DecimalFormat("#.#")
 
-    //    private val dataArray = arrayListOf<AnchorInfoBean>()
-//    private  lateinit var startNode: AnchorNode
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         bindItem()
         init()
         bindEvent()
-        buildDot()
+        preparation3DModel()
 
+    }
+
+
+    private fun floatToString(float: Float): String {
+        return df.format(float).toString()
     }
 
     private fun bindItem() {
         arFragment =
             (supportFragmentManager.findFragmentById(R.id.UI_ArSceneView) as ArFragment).apply {
-                planeDiscoveryController.hide()
-                planeDiscoveryController.setInstructionView(null)
+//                planeDiscoveryController.hide()
+//                planeDiscoveryController.setInstructionView(null)
             }
+
+
+        arFragment.setOnTapArPlaneListener { hitResult, plane, motionEvent ->
+
+            Log.d(TAG, "addFrOuterModel: ${hitResult.createAnchor()}")
+            when (status) {
+                Status.STATUS_MODEL_ADD -> {
+
+//                    frOuterNode= AnchorNode(hitResult.createAnchor())
+//                    frOuterNode.renderable=frOuterModel
+//                    scene!!.addChild(frOuterNode)
+                    addFrOuterModel()
+                    status = Status.STATUS_DOT_ADD
+                    iv_add.setImageDrawable(resources.getDrawable(R.drawable.baseline_add_24))
+                    tv_out_title.setTextColor(resources.getColor(R.color.black_low))
+                    tv_out.setTextColor(resources.getColor(R.color.black))
+
+                    tv_info.visibility = View.VISIBLE
+                    tv_info.text = resources.getString(R.string.select_Flange_Circumference)
+
+                }
+
+                Status.STATUS_DOT_ADD -> {
+
+                    val node = AnchorNode(hitResult.createAnchor())
+                    node.renderable = dotModel
+                    scene!!.addChild(node)
+                    val anchorInfoBean = AnchorInfoBean("", hitResult.createAnchor(), 0.0)
+                    dataArray.add(anchorInfoBean)
+
+                    if (dataArray.size == 3) {
+                        //計算球心https://www.cnblogs.com/kongbursi-2292702937/p/15190825.html
+                        //改變模型大小和位置
+                        val list = centerCircle3d(
+                            dataArray[0].anchor.pose.tx().toDouble(),
+                            dataArray[0].anchor.pose.ty().toDouble(),
+                            dataArray[0].anchor.pose.tz().toDouble(),
+                            dataArray[1].anchor.pose.tx().toDouble(),
+                            dataArray[1].anchor.pose.ty().toDouble(),
+                            dataArray[1].anchor.pose.tz().toDouble(),
+                            dataArray[2].anchor.pose.tx().toDouble(),
+                            dataArray[2].anchor.pose.ty().toDouble(),
+                            dataArray[2].anchor.pose.tz().toDouble()
+                        )
+
+                        changeModelFrScale(list,hitResult.createAnchor())
+                        tv_out.text = floatToString((list[3] * 1000*time).toFloat())
+
+                        status = Status.STATUS_HOLE_SIZE_SELECT
+                        iv_add.setImageDrawable(resources.getDrawable(R.drawable.baseline_arrow_forward_24))
+                        tv_back.visibility = View.VISIBLE
+                        tv_back.setOnClickListener {
+                            it.visibility = View.GONE
+                            tv_reset.performClick()
+                        }
+
+                        view_scale.setIsTouch(true)
+                        view_scale.setValue(frInterDefaultDiameter*1000 * frInterNode.worldScale.x)
+
+                        tv_hole_title.setTextColor(resources.getColor(R.color.black_low))
+                        tv_hole.setTextColor(resources.getColor(R.color.black))
+                        tv_hole.text = floatToString(frInterDefaultDiameter*1000*frInterNode.worldScale.x)
+
+                        tv_info.visibility = View.VISIBLE
+                        tv_info.text = resources.getString(R.string.map_red_cylinder)
+
+                    }
+                }
+            }
+        }
+
+
         viewCenter = findViewById(R.id.view_center)
 
         tv_back.visibility = View.GONE
@@ -115,6 +205,7 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
     }
 
     private fun restore() {
+        tv_info.visibility = View.GONE
         tv_out_title.setTextColor(resources.getColor(R.color.gray))
         tv_out.setTextColor(resources.getColor(R.color.gray))
         tv_hole_title.setTextColor(resources.getColor(R.color.gray))
@@ -128,102 +219,35 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
 
     private fun bindEvent() {
 
+        iv_setting.setOnClickListener {
+            LanguageActivity.start(this)
+        }
+
         iv_add.setOnClickListener {
-            restore()
-            when (status) {
-                Status.STATUS_MODEL_ADD -> {
-                    addFlangeOuterDiameter()
-
-                    status = Status.STATUS_DOT_ADD
-                    iv_add.setImageDrawable(resources.getDrawable(R.drawable.baseline_add_24))
-                    tv_out_title.setTextColor(resources.getColor(R.color.black_low))
-                    tv_out.setTextColor(resources.getColor(R.color.black))
-
-                    tv_info.text = "於法蘭面邊緣選取三個點"
-                }
-
-                Status.STATUS_DOT_ADD -> {
-                    determineTheDot()
-                    if (dots.size == 3 || true) {
-                        //計算球心https://www.cnblogs.com/kongbursi-2292702937/p/15190825.html
-                        FRcenterPosition = centerCircle3d(
-                            dots[0].worldPosition.x.toDouble(),
-                            dots[0].worldPosition.y.toDouble(),
-                            dots[0].worldPosition.z.toDouble(),
-                            dots[1].worldPosition.x.toDouble(),
-                            dots[1].worldPosition.y.toDouble(),
-                            dots[1].worldPosition.z.toDouble(),
-                            dots[2].worldPosition.x.toDouble(),
-                            dots[2].worldPosition.y.toDouble(),
-                            dots[2].worldPosition.z.toDouble()
-                        )
-                        //添加模型
-                        moveFR()
-
-                        status = Status.STATUS_HOLE_SIZE_SELECT
-                        iv_add.setImageDrawable(resources.getDrawable(R.drawable.baseline_arrow_forward_24))
-                        tv_back.visibility = View.VISIBLE
-                        tv_back.setOnClickListener {
-                            it.visibility=View.GONE
-                            tv_reset.performClick()
-                        }
-                        view_scale.setValue(tv_hole.text.toString().toFloat())
-                        view_scale.setIsTouch(true)
-                        tv_hole_title.setTextColor(resources.getColor(R.color.black_low))
-                        tv_hole.setTextColor(resources.getColor(R.color.black))
-                        tv_info.text = "透過轉盤調整紅色圓柱\n貼合其底面圓周與螺栓孔中心"
-                    }
-                }
-
-                Status.STATUS_HOLE_SIZE_SELECT -> {
-
-                    status = Status.STATUS_THICKNESS_SELECT
-                    tv_back.visibility = View.GONE
-                    view_scale.setValue(tv_thickness.text.toString().toFloat())
-                    view_scale.setIsTouch(true)
-                    tv_thickness_title.setTextColor(resources.getColor(R.color.black_low))
-                    tv_thickness.setTextColor(resources.getColor(R.color.black))
-                    tv_info.text = "透過轉盤調整黃色圓柱\n使其厚度與法蘭相同"
-                }
-
-                Status.STATUS_THICKNESS_SELECT -> {
-
-
-                    status = Status.STATUS_SCREW_SELECT
-                    iv_add.setImageDrawable(resources.getDrawable(R.drawable.baseline_content_paste_24))
-                    val dialog=ScrewDialog({
-                        wheelView = it
-                    }, {
-                        iv_add.performClick()
-                    })
-                    dialog.show(supportFragmentManager, "")
-                }
-
-                Status.STATUS_SCREW_SELECT -> {
-                    frModel = FRBean(
-                        tv_out.text.toString(),
-                        tv_hole.text.toString(),
-                        tv_thickness.text.toString(),
-                        wheelView!!.getCurrentItem(),
-                        "",
-                        ""
-                    )
-
-                    showResultListDialog()
-
-                }
-            }
+            setAddEvent()
 
         }
 
         view_scale.setValueChangeListener {
             when (status) {
                 Status.STATUS_HOLE_SIZE_SELECT -> {
-                    tv_hole.text = it.toString()
+                    tv_hole.text = floatToString(it)
+
+                    val lowerPosition = Vector3(
+                        (it/time) /( frInterDefaultDiameter*1000),
+                        frInterNode.worldScale.y,
+                        (it/time) / (frInterDefaultDiameter*1000)
+                    )
+                    frInterNode.worldScale = lowerPosition
+                    Log.d(TAG, "STATUS_HOLE_SIZE_SELECT: ${lowerPosition} ")
                 }
 
                 Status.STATUS_THICKNESS_SELECT -> {
-                    tv_thickness.text = it.toString()
+                    tv_thickness.text = floatToString(it)
+//
+                    val lowerPosition =
+                        Vector3(frOuterNode.worldScale.x, it/(frOuterDefaultHeight*1000), frOuterNode.worldScale.z)
+                    frOuterNode.worldScale = lowerPosition
                 }
 
                 Status.STATUS_SCREW_SELECT -> {}
@@ -234,15 +258,180 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
         tv_reset.setOnClickListener {
             status = Status.STATUS_MODEL_ADD
             restore()
+            scene!!.removeChild(frInterNode)
+            frInterNode= AnchorNode()
+            scene!!.removeChild(frOuterNode)
+            frOuterNode=AnchorNode()
+            dataArray = arrayListOf<AnchorInfoBean>()
         }
         tv_setting.setOnClickListener {
             TeachActivity.start(this)
         }
     }
 
-    fun clear(){
+    private fun preparation3DModel() {
+        Texture.builder()
+            .setSource(this, R.drawable.texture1)
+            .build()
+            .thenAccept(Consumer<Texture> { texture: Texture? ->
+                MaterialFactory.makeOpaqueWithTexture(this, texture)
+                    .thenAccept { material: Material? ->
+                        dotModel = ShapeFactory
+                            .makeSphere(
+                                0.005f,
+                                Vector3(0f, 0f, 0f),
+                                material
+                            )
+                    }
+            })
+        Log.d(TAG, "preparation3DModel: preparation3DModel")
+        MaterialFactory.makeTransparentWithColor(
+            this,
+            Color(ContextCompat.getColor(this, R.color.orange))
+        ).thenAccept { m ->
+
+            frOuterModel = ShapeFactory
+                .makeCylinder(
+                    frOuterDefaultDiameter,
+                    frOuterDefaultHeight,  //3公分
+                    Vector3.zero(),
+                    m
+                )
+        }
+        MaterialFactory.makeTransparentWithColor(
+            this,
+            Color(ContextCompat.getColor(this, R.color.red))
+        )
+            .thenAccept { m ->
+
+                frInterModel = ShapeFactory
+                    .makeCylinder(
+                        frInterDefaultDiameter, //10公分
+                        frInterDefaultHeight,  //10公分
+                        Vector3.zero(),
+                        m
+                    )
+                Log.d(TAG, "frInModel: ${frInterModel}")
+            }
 
     }
+
+    private fun addNodeToScene(anchor: Anchor, renderable: Renderable) {
+        val anchorNode = AnchorNode(anchor)
+        val node = TransformableNode(arFragment.transformationSystem)
+        node.renderable = renderable
+        node.setParent(anchorNode)
+        scene?.addChild(anchorNode)
+        node.select()
+    }
+
+    private fun setAddEvent() {
+        restore()
+        when (status) {
+            Status.STATUS_MODEL_ADD -> {
+//                addFrOuterModel()
+                simulateScreenTap(viewCenter.x + viewCenter.width / 2, viewCenter.x + viewCenter.width / 2)
+                Log.d(TAG, "simulateScreenTap: ${viewCenter.x + viewCenter.width / 2}")
+//                status = Status.STATUS_DOT_ADD
+//                iv_add.setImageDrawable(resources.getDrawable(R.drawable.baseline_add_24))
+//                tv_out_title.setTextColor(resources.getColor(R.color.black_low))
+//                tv_out.setTextColor(resources.getColor(R.color.black))
+//
+//                tv_info.visibility = View.VISIBLE
+//                tv_info.text = "於法蘭面邊緣選取三個點"
+
+            }
+
+            Status.STATUS_DOT_ADD -> {
+                simulateScreenTap(viewCenter.x + viewCenter.width / 2, viewCenter.x + viewCenter.width / 2)
+                Log.d(TAG, "simulateScreenTap: ${viewCenter.x + viewCenter.width / 2}")
+//                addPoint()
+//                if (dots.size == 3) {
+//                    //計算球心https://www.cnblogs.com/kongbursi-2292702937/p/15190825.html
+//                    //改變模型大小和位置
+//                    val list = centerCircle3d(
+//                        dots[0].worldPosition.x.toDouble(),
+//                        dots[0].worldPosition.y.toDouble(),
+//                        dots[0].worldPosition.z.toDouble(),
+//                        dots[1].worldPosition.x.toDouble(),
+//                        dots[1].worldPosition.y.toDouble(),
+//                        dots[1].worldPosition.z.toDouble(),
+//                        dots[2].worldPosition.x.toDouble(),
+//                        dots[2].worldPosition.y.toDouble(),
+//                        dots[2].worldPosition.z.toDouble()
+//                    )
+//
+//                    changeModelFrScale(list)
+//                    tv_out.text = floatToString((list[3] * 1000).toFloat())
+//
+//                    status = Status.STATUS_HOLE_SIZE_SELECT
+//                    iv_add.setImageDrawable(resources.getDrawable(R.drawable.baseline_arrow_forward_24))
+//                    tv_back.visibility = View.VISIBLE
+//                    tv_back.setOnClickListener {
+//                        it.visibility = View.GONE
+//                        tv_reset.performClick()
+//                    }
+//
+//                    view_scale.setIsTouch(true)
+//                    view_scale.setValue(frInterDefaultDiameter*1000 * frInterNode.worldScale.x)
+//
+//                    tv_hole_title.setTextColor(resources.getColor(R.color.black_low))
+//                    tv_hole.setTextColor(resources.getColor(R.color.black))
+//                    tv_hole.text = floatToString(frInterDefaultDiameter*1000*frInterNode.worldScale.x)
+//
+//                    tv_info.visibility = View.VISIBLE
+//                    tv_info.text = "透過轉盤調整紅色圓柱\n貼合其底面圓周與螺栓孔中心"
+//
+//                }
+            }
+
+            Status.STATUS_HOLE_SIZE_SELECT -> {
+
+                status = Status.STATUS_THICKNESS_SELECT
+                tv_back.visibility = View.GONE
+                view_scale.setValue(30f)
+                view_scale.setIsTouch(true)
+                tv_thickness.text="30"
+                tv_thickness_title.setTextColor(resources.getColor(R.color.black_low))
+                tv_thickness.setTextColor(resources.getColor(R.color.black))
+                iv_add.setImageDrawable(resources.getDrawable(R.drawable.baseline_arrow_forward_24))
+
+                tv_info.visibility = View.VISIBLE
+                tv_info.text =resources.getString(R.string.map_yellow_cylinder)
+
+                frInterNode.setParent(null)
+                frInterNode=Node()
+            }
+
+            Status.STATUS_THICKNESS_SELECT -> {
+
+
+                status = Status.STATUS_SCREW_SELECT
+                iv_add.setImageDrawable(resources.getDrawable(R.drawable.baseline_content_paste_24))
+                val dialog = ScrewDialog({
+                    wheelView = it
+                }, {
+                    iv_add.performClick()
+                })
+                dialog.show(supportFragmentManager, "")
+            }
+
+            Status.STATUS_SCREW_SELECT -> {
+                frModel = FRBean(
+                    tv_out.text.toString(),
+                    tv_hole.text.toString(),
+                    tv_thickness.text.toString(),
+                    wheelView!!.getCurrentItem(),
+                    "",
+                    ""
+                )
+
+                showResultListDialog()
+
+            }
+        }
+    }
+
 
     private fun showResultListDialog() {
         ResultListDialog(fakeResult) { data, dialog ->
@@ -255,64 +444,164 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
         }.show(supportFragmentManager, "")
     }
 
-    private fun addFlangeOuterDiameter() {
-        ModelRenderable
-            .builder()
-            .setSource(this, Uri.parse("balloon.sfb"))
-            .build()
-            .thenAccept { renderable: ModelRenderable? ->
-
-                FRNode.renderable = renderable
-                scene!!.addChild(FRNode)
-                val ray = camera!!.screenPointToRay(
-                    viewCenter.x + viewCenter.width / 2,
-                    viewCenter.y + viewCenter.height / 2
-                )
-                FRNode.worldPosition = ray.getPoint(1f)
+    private fun addFrOuterModel() {
+        val ray = camera!!.screenPointToRay(
+            viewCenter.x + viewCenter.width / 2,
+            viewCenter.y + viewCenter.height / 2
+        )
 
 
-            }
+
+//        simulateScreenTap(viewCenter.x + viewCenter.width / 2, viewCenter.x + viewCenter.width / 2);
+
+        frOuterNode.renderable = frOuterModel
+        frOuterNode.setParent(scene)
+        scene!!.addChild(frOuterNode)
+//        //深度
+        ray.getPoint(2f).also {
+            //給node設定位置
+            frOuterNode.worldPosition = it
+        }
+
+
+        
+//        Log.d(TAG, "worldPosition: ${frOuterNode.worldPosition }")
+//        val ray = camera!!.screenPointToRay(
+//            viewCenter.x + viewCenter.width / 2,
+//            viewCenter.y + viewCenter.height / 2
+//        )
+//        val result: HitTestResult = scene!!.hitTest(ray)
+//        Log.d(TAG, "addFrOuterModel: ${result.point}")
+//        frOuterNode.worldScale=result.point
+
+//        frOuterNode.setParent(result.node)
+
+//        frOuterNode.renderable=frOuterModel
+//        scene!!.addChild(frOuterNode)
+
     }
 
-    private fun buildDot() {
-        Texture.builder()
-            .setSource(this, R.drawable.texture1)
-            .build()
-            .thenAccept(Consumer<Texture> { texture: Texture? ->
-                MaterialFactory.makeOpaqueWithTexture(this, texture)
-                    .thenAccept { material: Material? ->
-                        dotModel = ShapeFactory
-                            .makeSphere(
-                                0.01f,
-                                Vector3(0f, 0f, 0f),
-                                material
-                            )
-                    }
-            })
+
+    private fun simulateScreenTap(x: Float, y: Float) {
+        // 创建 Instrumentation 对象
+        val instrumentation = Instrumentation()
+
+        // 获取当前时间
+        val downTime = SystemClock.uptimeMillis()
+        val eventTime = SystemClock.uptimeMillis()
+
+        // 创建 ACTION_DOWN 事件
+        val eventDown = MotionEvent.obtain(downTime, eventTime, MotionEvent.ACTION_DOWN, x, y, 0)
+
+        Thread { // 发送 ACTION_DOWN 事件
+            instrumentation.sendPointerSync(eventDown)
+        }.start()
+
+
+        // 休眠一小段时间，模拟按住状态
+        SystemClock.sleep(200)
+
+        // 创建 ACTION_UP 事件
+        val eventUp = MotionEvent.obtain(downTime, eventTime + 200, MotionEvent.ACTION_UP, x, y, 0)
+        Thread {
+            // 发送 ACTION_UP 事件
+            instrumentation.sendPointerSync(eventUp)
+        }.start()
     }
 
-    private fun determineTheDot() {
+
+    private fun addPoint() {
 
         val ray = camera!!.screenPointToRay(
             viewCenter.x + viewCenter.width / 2,
             viewCenter.y + viewCenter.height / 2
         )
+        val result: HitTestResult = scene!!.hitTest(ray)
+
+
         val node = Node()
         node.renderable = dotModel
         scene!!.addChild(node)
-        //深度
-        ray.getPoint(1f).also {
-            //給node設定位置
-            node.worldPosition = it
-            dots.add(node)
-        }
+        node.worldPosition = result.point
+        dots.add(node)
+
     }
 
-    private fun moveFR() {
-        FRcenterPosition?.let {
-            FRNode.worldPosition = Vector3(
-                it[0].toFloat(), it[1].toFloat(), it[2].toFloat()
-            )
+    private fun changeModelFrScale(center: List<Double>, createAnchor: Anchor) {
+        center.let {
+//            scene!!.removeChild(frOuterNode)
+            for(item in dots){
+                scene!!.removeChild(item)
+            }
+
+            Log.d(TAG, "changeModelFrScale: ${AnchorNode(createAnchor).worldPosition}")
+            Log.d(TAG, "changeModelFrScale center: ${center}")
+
+            val firstAnchorNode = AnchorNode(createAnchor)
+            firstAnchorNode.setParent(arFragment.arSceneView.scene)
+
+            val scaleX = it[3].toFloat() / frOuterDefaultDiameter
+            val scaleY = firstAnchorNode.worldScale.y
+            val scaleZ = it[3].toFloat() / frOuterDefaultDiameter
+
+            frOuterNode=AnchorNode().apply {
+                setParent(firstAnchorNode)
+                renderable = frOuterModel?.apply {
+                    isShadowCaster=false
+                    isShadowReceiver=false
+                }
+                worldPosition = Vector3(
+                    it[0].toFloat(), it[1].toFloat(), it[2].toFloat()
+                )
+                worldScale= Vector3(scaleX, scaleY, scaleZ)
+            }
+
+//            frOuterNode= AnchorNode(createAnchor)
+//            frOuterNode.renderable=frOuterModel
+//            scene!!.addChild(frOuterNode)
+////
+//
+//            frOuterNode.worldPosition = Vector3(
+//                it[0].toFloat(), it[1].toFloat(), it[2].toFloat()
+//            )
+//
+//            val scaleX = it[3].toFloat() / frOuterDefaultDiameter
+//            val scaleY = frOuterNode.worldScale.y
+//            val scaleZ = it[3].toFloat() / frOuterDefaultDiameter
+//
+//            frOuterNode.worldScale = Vector3(scaleX, scaleY, scaleZ)
+
+
+            frInterNode=Node().apply {
+                setParent(firstAnchorNode)
+                renderable = frInterModel?.apply {
+                    isShadowCaster=false
+                    isShadowReceiver=false
+                }
+                worldPosition = Vector3(
+                    it[0].toFloat(), it[1].toFloat()+0.01f, it[2].toFloat()
+                )
+                val scaleXI = frInterNode.worldScale.x/time
+                frInterNode.worldScale = Vector3(scaleXI, scaleY, scaleXI)
+            }
+
+
+//            frInterNode= AnchorNode(createAnchor)
+//            frInterNode.renderable=frInterModel
+//            scene!!.addChild(frInterNode)
+//
+//
+//            frInterNode.renderable = frInterModel
+//            scene!!.addChild(frInterNode)
+//
+//            //給node設定位置
+//            frInterNode.worldPosition = Vector3(
+//                it[0].toFloat(), it[1].toFloat()+0.01f, it[2].toFloat()
+//            )
+//            val scaleXI = (it[3].toFloat()*0.7) / frInterDefaultDiameter
+//            frInterNode.worldScale = Vector3(scaleXI.toFloat(), scaleY, scaleXI.toFloat())
+
+
         }
 
     }
@@ -367,210 +656,6 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
         (arFragment as MyArFragment).onDestroy()
     }
 
-
-//    lateinit var sceneView: ArSceneView
-//
-//    var modelNode: ArModelNode? = null
-//
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//
-//        registerView()
-//    }
-//
-//   private fun registerView(){
-//        sceneView = findViewById<ArSceneView?>(R.id.sceneView).apply {
-//
-//        }
-//
-//       modelNode?.anchor()
-//       sceneView.planeRenderer.isVisible = false
-//
-//       newModelNode()
-//    }
-//
-//    private fun newModelNode() {
-//        modelNode?.takeIf { !it.isAnchored }?.let {
-//            sceneView.removeChild(it)
-//            it.destroy()
-//        }
-//
-//        modelNode = ArModelNode(PlacementMode.BEST_AVAILABLE).apply {
-//            applyPoseRotation = false
-//
-//
-//
-//            loadModelGlbAsync(
-//                glbFileLocation = "models/halloween.glb",
-//                autoAnimate = true,
-//                //size
-//                scaleToUnits = 0.01f,
-//                centerOrigin = Position(y = -1.0f)
-//            ) {
-//                sceneView.planeRenderer.isVisible = true
-//            }
-//            onAnchorChanged = { anchor ->
-//            }
-//            onHitResult = { node, _ ->
-//
-//            }
-//        }
-//        sceneView.addChild(modelNode!!)
-//        // Select the model node by default (the model node is also selected on tap)
-//        sceneView.selectedNode = modelNode
-//    }
-
-
-//    lateinit var sceneView: ArSceneView
-//    lateinit var loadingView: View
-//    lateinit var statusText: TextView
-//    lateinit var placeModelButton: ExtendedFloatingActionButton
-//    lateinit var newModelButton: ExtendedFloatingActionButton
-//
-//    data class Model(
-//        val fileLocation: String,
-//        val scaleUnits: Float? = null,
-//        val placementMode: PlacementMode = PlacementMode.BEST_AVAILABLE,
-//        val applyPoseRotation: Boolean = true
-//    )
-//
-//    val models = listOf(
-//        Model("models/spiderbot.glb"),
-//        Model(
-//            fileLocation = "https://storage.googleapis.com/ar-answers-in-search-models/static/Tiger/model.glb",
-//            // Display the Tiger with a size of 3 m long
-//            scaleUnits = 2.5f,
-//            placementMode = PlacementMode.BEST_AVAILABLE,
-//            applyPoseRotation = false
-//        ),
-//        Model(
-//            fileLocation = "https://sceneview.github.io/assets/models/DamagedHelmet.glb",
-//            placementMode = PlacementMode.INSTANT,
-//            scaleUnits = 0.5f
-//        ),
-//        Model(
-//            fileLocation = "https://storage.googleapis.com/ar-answers-in-search-models/static/GiantPanda/model.glb",
-//            placementMode = PlacementMode.PLANE_HORIZONTAL,
-//            // Display the Tiger with a size of 1.5 m height
-//            scaleUnits = 1.5f
-//        ),
-//        Model(
-//            fileLocation = "https://sceneview.github.io/assets/models/Spoons.glb",
-//            placementMode = PlacementMode.PLANE_HORIZONTAL_AND_VERTICAL,
-//            // Keep original model size
-//            scaleUnits = null
-//        ),
-//        Model(
-//            fileLocation = "https://sceneview.github.io/assets/models/Halloween.glb",
-//            placementMode = PlacementMode.PLANE_HORIZONTAL,
-//            scaleUnits = 2.5f
-//        ),
-//    )
-//    var modelIndex = 0
-//    var modelNode: ArModelNode? = null
-//
-//    var isLoading = false
-//        set(value) {
-//            field = value
-//            loadingView.isGone = !value
-//        }
-//
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//
-//        setFullScreen(
-//            findViewById(R.id.rootView),
-//            fullScreen = true,
-//            hideSystemBars = false,
-//            fitsSystemWindows = false
-//        )
-//
-//        setSupportActionBar(findViewById<Toolbar>(R.id.toolbar)?.apply {
-//            doOnApplyWindowInsets { systemBarsInsets ->
-//                (layoutParams as ViewGroup.MarginLayoutParams).topMargin = systemBarsInsets.top
-//            }
-//            title = ""
-//        })
-//        statusText = findViewById(R.id.statusText)
-//        sceneView = findViewById<ArSceneView?>(R.id.sceneView).apply {
-//            onArTrackingFailureChanged = { reason ->
-//                statusText.text = reason?.getDescription(context)
-//                statusText.isGone = reason == null
-//            }
-//        }
-//        loadingView = findViewById(R.id.loadingView)
-//        newModelButton = findViewById<ExtendedFloatingActionButton>(R.id.newModelButton).apply {
-//            // Add system bar margins
-//            val bottomMargin = (layoutParams as ViewGroup.MarginLayoutParams).bottomMargin
-//            doOnApplyWindowInsets { systemBarsInsets ->
-//                (layoutParams as ViewGroup.MarginLayoutParams).bottomMargin =
-//                    systemBarsInsets.bottom + bottomMargin
-//            }
-//            setOnClickListener { newModelNode() }
-//        }
-//        placeModelButton = findViewById<ExtendedFloatingActionButton>(R.id.placeModelButton).apply {
-//            setOnClickListener { placeModelNode() }
-//        }
-//
-//        newModelNode()
-//    }
-//
-//    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-////        menuInflater.inflate(R.menu.activity_main, menu)
-//        return super.onCreateOptionsMenu(menu)
-//    }
-//
-//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-//        item.isChecked = !item.isChecked
-//        modelNode?.detachAnchor()
-////        modelNode?.placementMode = when (item.itemId) {
-////            R.id.menuPlanePlacement -> PlacementMode.PLANE_HORIZONTAL_AND_VERTICAL
-////            R.id.menuInstantPlacement -> PlacementMode.INSTANT
-////            R.id.menuDepthPlacement -> PlacementMode.DEPTH
-////            R.id.menuBestPlacement -> PlacementMode.BEST_AVAILABLE
-////            else -> PlacementMode.DISABLED
-////        }
-//        return super.onOptionsItemSelected(item)
-//    }
-//
-//    fun placeModelNode() {
-//        modelNode?.anchor()
-//        sceneView.planeRenderer.isVisible = false
-//    }
-//
-//    fun newModelNode() {
-//        isLoading = true
-//        modelNode?.takeIf { !it.isAnchored }?.let {
-//            sceneView.removeChild(it)
-//            it.destroy()
-//        }
-//
-//        val model = models[modelIndex]
-//        modelIndex = (modelIndex + 1) % models.size
-//        modelNode = ArModelNode(model.placementMode).apply {
-//            applyPoseRotation = model.applyPoseRotation
-//            loadModelGlbAsync(
-//                glbFileLocation = model.fileLocation,
-//                autoAnimate = true,
-//                scaleToUnits = model.scaleUnits,
-//                // Place the model origin at the bottom center
-//                centerOrigin = Position(y = -1.0f)
-//            ) {
-//                sceneView.planeRenderer.isVisible = true
-//                isLoading = false
-//            }
-//            onAnchorChanged = { anchor ->
-//                placeModelButton.isGone = anchor != null
-//            }
-//            onHitResult = { node, _ ->
-//                placeModelButton.isGone = !node.isTracking
-//            }
-//        }
-//        sceneView.addChild(modelNode!!)
-//        // Select the model node by default (the model node is also selected on tap)
-//        sceneView.selectedNode = modelNode
-//    }
-//
 
 }
 

@@ -8,6 +8,7 @@
     <color name="black">#FF3C3C3C</color>
     <color name="black_low">#FF3C3C3C</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="white_t">#66FFFFFF</color>
     <color name="white_high">#FFFFFFFF</color>
     <color name="gray">#AF808080</color>
     <color name="gray_t">#8F808080</color>
@@ -16,4 +17,7 @@
     <color name="colorPrimaryDark">#241e32</color>
     <color name="blue">#7DF9FF</color>
     <color name="blue_t">#11BB86FC</color>
+    <color name="orange">#AAF0C5B8</color>
+    <color name="red">#77FF0000</color>
+
 </resources>

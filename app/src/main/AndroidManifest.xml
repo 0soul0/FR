@@ -6,8 +6,11 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-feature android:name="android.hardware.camera"
-        android:required="true" />
+    <uses-feature android:name="android.hardware.camera.ar" android:required="true" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/icon_logo"
@@ -17,7 +20,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity android:name="com.gj.fr.ArActivity">
+        <activity android:name="com.gj.fr.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
@@ -27,10 +30,13 @@
 
         <activity android:name="com.gj.fr.TeachActivity" />
         <activity android:name="com.gj.fr.ResultActivity" />
+        <activity android:name="com.gj.fr.VideoActivity" />
+        <activity android:name="com.gj.fr.ArActivity" />
+        <activity android:name="com.gj.fr.LanguageActivity" />
 
         <meta-data
             android:name="com.google.ar.core"
-            android:value="optional" />
+            android:value="required" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -40,6 +46,8 @@
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
+
+
 
         </provider>
 

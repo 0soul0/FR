@@ -32,7 +32,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    android:text="螺釘數目"
+                    android:text="@string/number_of_bolts"
                     android:textColor="@color/black_low"
                     android:textSize="24sp"
                     android:textStyle="bold" />
