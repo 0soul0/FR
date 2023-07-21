@@ -83,7 +83,7 @@ class ResultDialog(
 
         val window = dialog.window
         window?.setDimAmount(0f)
-        window.decorView.setPadding(0,8,0,0)
+        window?.decorView?.setPadding(0,8,0,0)
         val lp = window?.attributes
         lp?.run { windowAnimations = R.style.BottomShowAnimation }
         return dialog

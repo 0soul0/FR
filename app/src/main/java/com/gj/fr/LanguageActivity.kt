@@ -48,7 +48,7 @@ class LanguageActivity : AppCompatActivity(R.layout.activity_language) {
         Handler().postDelayed(object :Runnable {
             override fun run() {
                val intent= packageManager.getLaunchIntentForPackage(application.packageName)
-                intent.flags=Intent.FLAG_ACTIVITY_CLEAR_TOP
+                intent?.flags=Intent.FLAG_ACTIVITY_CLEAR_TOP
                 startActivity(intent)
             }
         },100)

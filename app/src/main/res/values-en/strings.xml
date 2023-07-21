@@ -35,4 +35,9 @@
     <string name="language">Language</string>
     <string name="English">English</string>
     <string name="Chinese">中文</string>
+
+    <string name="pitch">Pitch</string>
+    <string name="roll">Roll</string>
+    <string name="shift">Shift</string>
+    <string name="placing">Parallel placing</string>
 </resources>

@@ -1,0 +1,145 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:287394838196836514",
+      "lastPropertyId": "3:868899072654051183",
+      "name": "FlangeDetail",
+      "properties": [
+        {
+          "id": "1:8267490211360391638",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:1378119129182220077",
+          "name": "queryId",
+          "type": 5
+        },
+        {
+          "id": "3:868899072654051183",
+          "name": "name",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "2:3117518736290963902",
+      "lastPropertyId": "3:7550360147256406110",
+      "name": "FlangeSequence",
+      "properties": [
+        {
+          "id": "1:3956357690044797504",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:6578097435460211783",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:7550360147256406110",
+          "name": "seq",
+          "type": 5
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "3:8320675555666781340",
+      "lastPropertyId": "14:9151985315149844304",
+      "name": "FlangeV8",
+      "properties": [
+        {
+          "id": "1:5647415714813260227",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8877158684652698336",
+          "name": "flangeId",
+          "type": 5
+        },
+        {
+          "id": "3:2838753113083038047",
+          "name": "queryId",
+          "type": 5
+        },
+        {
+          "id": "4:7636689020202509659",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "5:4214778486403289194",
+          "name": "innerDia",
+          "type": 8
+        },
+        {
+          "id": "6:5344871467075893440",
+          "name": "outterDia",
+          "type": 8
+        },
+        {
+          "id": "7:5494327563022591181",
+          "name": "boltCircleDia",
+          "type": 8
+        },
+        {
+          "id": "8:6233674943316490644",
+          "name": "thickness",
+          "type": 8
+        },
+        {
+          "id": "9:6708704290335414339",
+          "name": "material",
+          "type": 9
+        },
+        {
+          "id": "10:2367037746213166852",
+          "name": "numOfBolts",
+          "type": 5
+        },
+        {
+          "id": "11:1523675099784820595",
+          "name": "holeSize",
+          "type": 8
+        },
+        {
+          "id": "12:5866419560126744065",
+          "name": "bolt",
+          "type": 9
+        },
+        {
+          "id": "13:2944653065531637070",
+          "name": "flangeType",
+          "type": 9
+        },
+        {
+          "id": "14:9151985315149844304",
+          "name": "flangeClass",
+          "type": 9
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "3:8320675555666781340",
+  "lastIndexId": "0:0",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [],
+  "retiredRelationUids": [],
+  "version": 1
+}

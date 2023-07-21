@@ -24,7 +24,10 @@
     <string name="query_result">查詢結果</string>
     <string name="bolt_diameter">孔位圓徑</string>
 
-
+    <string name="pitch">俯仰</string>
+    <string name="roll">翻滾</string>
+    <string name="shift">平移</string>
+    <string name="placing">平行放置</string>
 
     <string name="thickness">厚度</string>
     <string name="tutorial">教學</string>

@@ -5,11 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import com.gj.arcoredraw.R
 import kotlinx.android.synthetic.main.activity_teach.itv_back
 import kotlinx.android.synthetic.main.activity_teach.tv_in
@@ -30,11 +27,14 @@ class TeachActivity : AppCompatActivity(R.layout.activity_teach) {
         super.onCreate(savedInstanceState)
 //        pdfView.visibility=View.GONE
         tv_in.setOnClickListener {
-
-            openPdfFromRawResource(R.raw.manual_z)
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://app.fidesbio.com/images/Flange_AR_cht.pdf"))
+            startActivity(intent)
+//            openPdfFromRawResource(R.raw.manual_z)
         }
         tv_video.setOnClickListener {
-            VideoActivity.start(this)
+//            VideoActivity.start(this)
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://app.fidesbio.com/images/Flange_AR_cht.mp4"))
+            startActivity(intent)
         }
 
         itv_back.setOnClickListener {

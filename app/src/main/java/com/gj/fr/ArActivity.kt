@@ -1,6 +1,7 @@
 package com.gj.fr
 
 import android.app.Instrumentation
+import android.app.usage.UsageEvents.Event
 import android.content.Context
 import android.content.Intent
 import android.graphics.Point
@@ -10,40 +11,46 @@ import android.os.SystemClock
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.github.gzuliyujiang.wheelview.widget.WheelView
 import com.gj.arcoredraw.R
 import com.google.ar.core.Anchor
+import com.google.ar.core.Plane
+import com.google.ar.core.TrackingState
 import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.Camera
 import com.google.ar.sceneform.HitTestResult
 import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.Scene
+import com.google.ar.sceneform.math.Quaternion
 import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.Color
-import com.google.ar.sceneform.rendering.Material
 import com.google.ar.sceneform.rendering.MaterialFactory
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.rendering.Renderable
 import com.google.ar.sceneform.rendering.ShapeFactory
-import com.google.ar.sceneform.rendering.Texture
 import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.TransformableNode
+import kotlinx.android.synthetic.main.activity_ar.cl_setting
 import kotlinx.android.synthetic.main.activity_ar.iv_add
 import kotlinx.android.synthetic.main.activity_ar.iv_setting
+import kotlinx.android.synthetic.main.activity_ar.seekBar_pitch
+import kotlinx.android.synthetic.main.activity_ar.seekBar_roll
+import kotlinx.android.synthetic.main.activity_ar.seekBar_shift
 import kotlinx.android.synthetic.main.activity_ar.tv_back
 import kotlinx.android.synthetic.main.activity_ar.tv_hole
 import kotlinx.android.synthetic.main.activity_ar.tv_hole_title
 import kotlinx.android.synthetic.main.activity_ar.tv_info
 import kotlinx.android.synthetic.main.activity_ar.tv_out
 import kotlinx.android.synthetic.main.activity_ar.tv_out_title
+import kotlinx.android.synthetic.main.activity_ar.tv_placing
 import kotlinx.android.synthetic.main.activity_ar.tv_reset
 import kotlinx.android.synthetic.main.activity_ar.tv_setting
 import kotlinx.android.synthetic.main.activity_ar.tv_thickness
 import kotlinx.android.synthetic.main.activity_ar.tv_thickness_title
 import kotlinx.android.synthetic.main.activity_ar.view_scale
-import java.util.function.Consumer
 
 
 class ArActivity : AppCompatActivity(R.layout.activity_ar) {
@@ -55,7 +62,7 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
         }
     }
 
-    private var fakeResult = listOf(
+    private var fakeResult = mutableListOf(
         FRBean(
             sort = "排名1",
             type = "DN125|JIS16K|JIS B 2210",
@@ -75,15 +82,15 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
 
     private var dotModel: ModelRenderable? = null
     private var frOuterModel: Renderable? = null
-    private var frOuterNode = Node()
+    private var frOuterNode = AnchorNode()
     private var frOuterDefaultDiameter = 0.25f //25cm 直徑
     private var frOuterDefaultHeight = 0.03f //3cm
 
     private var frInterModel: ModelRenderable? = null
-    private var frInterNode = Node()
+    private var frInterNode = AnchorNode()
     private var frInterDefaultDiameter = 0.20f //25cm 直徑
     private var frInterDefaultHeight = 0.01f //1cm
-    private val time:Float = 2.0f
+    private val time: Float = 2.0f
 
     private var scene: Scene? = null
     private var camera: Camera? = null
@@ -115,7 +122,9 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
 //                planeDiscoveryController.hide()
 //                planeDiscoveryController.setInstructionView(null)
             }
-
+//        arFragment.arSceneView.scene.addOnUpdateListener {
+//            detectPlace()
+//        }
 
         arFragment.setOnTapArPlaneListener { hitResult, plane, motionEvent ->
 
@@ -126,7 +135,7 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
 //                    frOuterNode= AnchorNode(hitResult.createAnchor())
 //                    frOuterNode.renderable=frOuterModel
 //                    scene!!.addChild(frOuterNode)
-                    addFrOuterModel()
+//                    addFrOuterModel()
                     status = Status.STATUS_DOT_ADD
                     iv_add.setImageDrawable(resources.getDrawable(R.drawable.baseline_add_24))
                     tv_out_title.setTextColor(resources.getColor(R.color.black_low))
@@ -160,23 +169,27 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
                             dataArray[2].anchor.pose.tz().toDouble()
                         )
 
-                        changeModelFrScale(list,hitResult.createAnchor())
-                        tv_out.text = floatToString((list[3] * 1000*time).toFloat())
+                        changeModelFrScale(list, hitResult.createAnchor())
+                        tv_out.text = floatToString((list[3] * 1000 * time).toFloat())
 
                         status = Status.STATUS_HOLE_SIZE_SELECT
                         iv_add.setImageDrawable(resources.getDrawable(R.drawable.baseline_arrow_forward_24))
                         tv_back.visibility = View.VISIBLE
                         tv_back.setOnClickListener {
                             it.visibility = View.GONE
-                            tv_reset.performClick()
+                            dots.clear()
+                            status = Status.STATUS_DOT_ADD
+
+//                            tv_reset.performClick()
                         }
 
                         view_scale.setIsTouch(true)
-                        view_scale.setValue(frInterDefaultDiameter*1000 * frInterNode.worldScale.x)
+                        view_scale.setValue(frInterDefaultDiameter * 1000 * frInterNode.worldScale.x)
 
                         tv_hole_title.setTextColor(resources.getColor(R.color.black_low))
                         tv_hole.setTextColor(resources.getColor(R.color.black))
-                        tv_hole.text = floatToString(frInterDefaultDiameter*1000*frInterNode.worldScale.x)
+                        tv_hole.text =
+                            floatToString(frInterDefaultDiameter * 1000 * frInterNode.worldScale.x)
 
                         tv_info.visibility = View.VISIBLE
                         tv_info.text = resources.getString(R.string.map_red_cylinder)
@@ -192,6 +205,27 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
         tv_back.visibility = View.GONE
         tv_info.visibility = View.GONE
         view_scale.setIsTouch(false)
+    }
+
+    fun detectPlace() {
+        val frame = arFragment.arSceneView.arFrame
+        val plances = frame!!.getUpdatedTrackables(Plane::class.java)
+        for (plane in plances) {
+            if (plane.trackingState == TrackingState.TRACKING) {
+
+                val anchor = plane.createAnchor(plane.centerPose)
+                frOuterNode = AnchorNode(anchor)
+                frOuterNode.renderable = frOuterModel
+                scene!!.addChild(frOuterNode)
+                status = Status.STATUS_DOT_ADD
+                iv_add.setImageDrawable(resources.getDrawable(R.drawable.baseline_add_24))
+                tv_out_title.setTextColor(resources.getColor(R.color.black_low))
+                tv_out.setTextColor(resources.getColor(R.color.black))
+
+                tv_info.visibility = View.VISIBLE
+                tv_info.text = resources.getString(R.string.select_Flange_Circumference)
+            }
+        }
     }
 
     private fun init() {
@@ -217,16 +251,135 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
         iv_add.setImageDrawable(resources.getDrawable(R.drawable.baseline_zoom_out_map_24))
     }
 
+    var processPitch = 50
+    var processRoll = 50
+    var processShift = 50
+
+
     private fun bindEvent() {
 
         iv_setting.setOnClickListener {
-            LanguageActivity.start(this)
+//            LanguageActivity.start(this)
+            if (cl_setting.visibility == View.VISIBLE) {
+                cl_setting.visibility = View.GONE
+                iv_setting.setBackgroundDrawable(resources.getDrawable(R.drawable.bg_language))
+            } else {
+                cl_setting.visibility = View.VISIBLE
+                iv_setting.setBackgroundDrawable(resources.getDrawable(R.drawable.bg_language_1))
+            }
+        }
+
+        seekBar_pitch.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+
+//                val pitch =frOuterNode
+//                var q2 = Quaternion()
+//                processPitch = if(progress>processPitch){
+//                    q2 = Quaternion.axisAngle(Vector3(0f, 1f, 0f), -2f)
+//                    progress
+//                }else{
+//                    q2 = Quaternion.axisAngle(Vector3(0f, 1f, 0f), -2f)
+//                    progress
+//                }
+//
+//
+//
+//
+//                frOuterNode.worldRotation = Quaternion.multiply(pitch, q2)
+
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+        })
+
+        seekBar_roll.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                val roll = frOuterNode.worldRotation
+
+                processRoll = if (progress > processRoll) {
+                    roll.z++
+                    progress
+                } else {
+                    roll.y--
+                    progress
+                }
+
+                frOuterNode.worldRotation = roll
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+        })
+
+        seekBar_shift.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+
+                val postion = frOuterNode.worldPosition
+
+                processShift = if (progress > processShift) {
+                    postion.z++
+                    progress
+                } else {
+                    postion.z--
+                    progress
+                }
+
+                frOuterNode.worldPosition = postion
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+        })
+
+        tv_placing.setOnClickListener {
+            addFrOuterModel()
+            status = Status.STATUS_DOT_ADD
         }
 
         iv_add.setOnClickListener {
+            Log.d(TAG, "setOnClickListener: setOnClickListener")
             setAddEvent()
 
         }
+
+//        iv_add.setOnLongClickListener {
+//            if(status==Status.STATUS_MODEL_ADD){
+//                detectPlace()
+//            }
+////
+//            Log.d(TAG, "setOnLongClickListener: ")
+//            true
+//        }
+
+        iv_add.setOnTouchListener { v, event ->
+            if (status == Status.STATUS_MODEL_ADD) {
+                if (event.action == MotionEvent.ACTION_DOWN) {
+//                    detectPlace()
+                    Log.d(TAG, "DOWN: ${status}")
+                } else {
+                    Log.d(TAG, "UP: ")
+                }
+                true
+            } else {
+                false
+            }
+        }
+
 
         view_scale.setValueChangeListener {
             when (status) {
@@ -234,9 +387,9 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
                     tv_hole.text = floatToString(it)
 
                     val lowerPosition = Vector3(
-                        (it/time) /( frInterDefaultDiameter*1000),
+                        (it / time) / (frInterDefaultDiameter * 1000),
                         frInterNode.worldScale.y,
-                        (it/time) / (frInterDefaultDiameter*1000)
+                        (it / time) / (frInterDefaultDiameter * 1000)
                     )
                     frInterNode.worldScale = lowerPosition
                     Log.d(TAG, "STATUS_HOLE_SIZE_SELECT: ${lowerPosition} ")
@@ -246,7 +399,11 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
                     tv_thickness.text = floatToString(it)
 //
                     val lowerPosition =
-                        Vector3(frOuterNode.worldScale.x, it/(frOuterDefaultHeight*1000), frOuterNode.worldScale.z)
+                        Vector3(
+                            frOuterNode.worldScale.x,
+                            it / (frOuterDefaultHeight * 1000),
+                            frOuterNode.worldScale.z
+                        )
                     frOuterNode.worldScale = lowerPosition
                 }
 
@@ -259,9 +416,9 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
             status = Status.STATUS_MODEL_ADD
             restore()
             scene!!.removeChild(frInterNode)
-            frInterNode= AnchorNode()
+            frInterNode = AnchorNode()
             scene!!.removeChild(frOuterNode)
-            frOuterNode=AnchorNode()
+            frOuterNode = AnchorNode()
             dataArray = arrayListOf<AnchorInfoBean>()
         }
         tv_setting.setOnClickListener {
@@ -270,20 +427,34 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
     }
 
     private fun preparation3DModel() {
-        Texture.builder()
-            .setSource(this, R.drawable.texture1)
-            .build()
-            .thenAccept(Consumer<Texture> { texture: Texture? ->
-                MaterialFactory.makeOpaqueWithTexture(this, texture)
-                    .thenAccept { material: Material? ->
-                        dotModel = ShapeFactory
-                            .makeSphere(
-                                0.005f,
-                                Vector3(0f, 0f, 0f),
-                                material
-                            )
-                    }
-            })
+//        Texture.builder()
+//            .setSource(this, R.drawable.texture1)
+//            .build()
+//            .thenAccept(Consumer<Texture> { texture: Texture? ->
+//                MaterialFactory.makeOpaqueWithTexture(this, texture)
+//                    .thenAccept { material: Material? ->
+//                        dotModel = ShapeFactory
+//                            .makeSphere(
+//                                0.005f,
+//                                Vector3(0f, 0f, 0f),
+//                                material
+//                            )
+//                    }
+//            })
+
+        MaterialFactory.makeTransparentWithColor(
+            this,
+            Color(ContextCompat.getColor(this, R.color.blue_dot))
+        ).thenAccept { m ->
+
+            dotModel = ShapeFactory
+                .makeSphere(
+                    0.005f,
+                    Vector3(0f, 0f, 0f),
+                    m
+                )
+        }
+
         Log.d(TAG, "preparation3DModel: preparation3DModel")
         MaterialFactory.makeTransparentWithColor(
             this,
@@ -330,8 +501,11 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
         when (status) {
             Status.STATUS_MODEL_ADD -> {
 //                addFrOuterModel()
-                simulateScreenTap(viewCenter.x + viewCenter.width / 2, viewCenter.x + viewCenter.width / 2)
-                Log.d(TAG, "simulateScreenTap: ${viewCenter.x + viewCenter.width / 2}")
+//                simulateScreenTap(
+//                    viewCenter.x + viewCenter.width / 2,
+//                    viewCenter.x + viewCenter.width / 2
+//                )
+//                Log.d(TAG, "simulateScreenTap: ${viewCenter.x + viewCenter.width / 2}")
 //                status = Status.STATUS_DOT_ADD
 //                iv_add.setImageDrawable(resources.getDrawable(R.drawable.baseline_add_24))
 //                tv_out_title.setTextColor(resources.getColor(R.color.black_low))
@@ -343,7 +517,10 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
             }
 
             Status.STATUS_DOT_ADD -> {
-                simulateScreenTap(viewCenter.x + viewCenter.width / 2, viewCenter.x + viewCenter.width / 2)
+                simulateScreenTap(
+                    viewCenter.x + viewCenter.width / 2,
+                    viewCenter.x + viewCenter.width / 2
+                )
                 Log.d(TAG, "simulateScreenTap: ${viewCenter.x + viewCenter.width / 2}")
 //                addPoint()
 //                if (dots.size == 3) {
@@ -391,16 +568,16 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
                 tv_back.visibility = View.GONE
                 view_scale.setValue(30f)
                 view_scale.setIsTouch(true)
-                tv_thickness.text="30"
+                tv_thickness.text = "30"
                 tv_thickness_title.setTextColor(resources.getColor(R.color.black_low))
                 tv_thickness.setTextColor(resources.getColor(R.color.black))
                 iv_add.setImageDrawable(resources.getDrawable(R.drawable.baseline_arrow_forward_24))
 
                 tv_info.visibility = View.VISIBLE
-                tv_info.text =resources.getString(R.string.map_yellow_cylinder)
+                tv_info.text = resources.getString(R.string.map_yellow_cylinder)
 
                 frInterNode.setParent(null)
-                frInterNode=Node()
+                frInterNode = AnchorNode()
             }
 
             Status.STATUS_THICKNESS_SELECT -> {
@@ -425,6 +602,27 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
                     "",
                     ""
                 )
+
+//                val inputParameter = InputParameter(
+//                    tv_out.text.toString().toDouble(),
+//                    tv_hole.text.toString().toDouble(),
+//                    tv_thickness.text.toString().toDouble(),
+//                    wheelView!!.getCurrentItem()
+//                )
+//
+//                query(inputParameter)?.forEach {
+//                    fakeResult.add(
+//                        FRBean(
+//                            sort = "排名1",
+//                            type = "DN125|JIS16K|JIS B 2210",
+//                            out = "",
+//                            hole = "",
+//                            thickness = "",
+//                            screw = ""
+//                        )
+//                    )
+//                }
+
 
                 showResultListDialog()
 
@@ -451,20 +649,18 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
         )
 
 
-
 //        simulateScreenTap(viewCenter.x + viewCenter.width / 2, viewCenter.x + viewCenter.width / 2);
 
         frOuterNode.renderable = frOuterModel
         frOuterNode.setParent(scene)
         scene!!.addChild(frOuterNode)
 //        //深度
-        ray.getPoint(2f).also {
+        ray.getPoint(1f).also {
             //給node設定位置
             frOuterNode.worldPosition = it
         }
 
 
-        
 //        Log.d(TAG, "worldPosition: ${frOuterNode.worldPosition }")
 //        val ray = camera!!.screenPointToRay(
 //            viewCenter.x + viewCenter.width / 2,
@@ -530,7 +726,7 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
     private fun changeModelFrScale(center: List<Double>, createAnchor: Anchor) {
         center.let {
 //            scene!!.removeChild(frOuterNode)
-            for(item in dots){
+            for (item in dots) {
                 scene!!.removeChild(item)
             }
 
@@ -544,16 +740,16 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
             val scaleY = firstAnchorNode.worldScale.y
             val scaleZ = it[3].toFloat() / frOuterDefaultDiameter
 
-            frOuterNode=AnchorNode().apply {
+            frOuterNode = AnchorNode().apply {
                 setParent(firstAnchorNode)
                 renderable = frOuterModel?.apply {
-                    isShadowCaster=false
-                    isShadowReceiver=false
+                    isShadowCaster = false
+                    isShadowReceiver = false
                 }
                 worldPosition = Vector3(
                     it[0].toFloat(), it[1].toFloat(), it[2].toFloat()
                 )
-                worldScale= Vector3(scaleX, scaleY, scaleZ)
+                worldScale = Vector3(scaleX, scaleY, scaleZ)
             }
 
 //            frOuterNode= AnchorNode(createAnchor)
@@ -572,16 +768,16 @@ class ArActivity : AppCompatActivity(R.layout.activity_ar) {
 //            frOuterNode.worldScale = Vector3(scaleX, scaleY, scaleZ)
 
 
-            frInterNode=Node().apply {
+            frInterNode = AnchorNode().apply {
                 setParent(firstAnchorNode)
                 renderable = frInterModel?.apply {
-                    isShadowCaster=false
-                    isShadowReceiver=false
+                    isShadowCaster = false
+                    isShadowReceiver = false
                 }
                 worldPosition = Vector3(
-                    it[0].toFloat(), it[1].toFloat()+0.01f, it[2].toFloat()
+                    it[0].toFloat(), it[1].toFloat() + 0.04f, it[2].toFloat()
                 )
-                val scaleXI = frInterNode.worldScale.x/time
+                val scaleXI = frInterNode.worldScale.x / time
                 frInterNode.worldScale = Vector3(scaleXI, scaleY, scaleXI)
             }
 

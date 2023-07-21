@@ -21,7 +21,7 @@ class ScrewDialog(
 ) : DialogFragment() {
 
 
-    val screwList = listOf("4","8","12","16","20","24","28","32","36","40")
+    val screwList = listOf("4","8","12","16","20","24","28","32","36","44","48","52","56","60","64","68")
 
     private val contentView by lazy {
         LayoutInflater.from(context).inflate(R.layout.dialog_screw, null)

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- SeekBar Thumb，自定义形状和颜色 -->
+<!--    <item-->
+<!--        android:id="@android:id/background"-->
+<!--        android:drawable="@drawable/seekbar_thumb_shadow" />-->
+    <item
+        android:drawable="@drawable/seekbar_thumb_shadow" />
+    <!-- 阴影效果，通过偏移位置实现 -->
+    <item
+        android:drawable="@drawable/seekbar_thumb_custom_shape"
+        android:bottom="2dp"
+        android:left="2dp"
+        android:right="2dp"
+        android:top="2dp" />
+</layer-list>
